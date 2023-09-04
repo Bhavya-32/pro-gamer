@@ -1,0 +1,70 @@
+commands to work on google sdk
+
+step 1: gcloud init
+step 2: select the project options
+
+step 3: gsutil mb gs://7ambucket/
+
+step 4: gsutil ls gs://7ambucket/
+
+step 5: gsutil cp C:\CDE\usecases\data_repurchase_product_11-03-2022.csv gs://7ambucket/
+
+step 6: bq mk Repurchase_products_staging
+
+step 7: bq mk -t Repurchase_products_staging.products_staging
+
+step 8: bq load --source_format=CSV --skip_leading_rows=1 --autodetect Repurchase_products_staging.products_staging gs://7ambucket/data_repurchase_product_11-03-2022.csv
+
+step 9: bq mk Repurchase_products_History
+
+step 10: 
+--this bigquery script for creating the history table for repurchase data
+
+BQ MK -T REPURCHASE_PRODUCTS_HISTORY.PRODUCTS_HISTORY 
+CID:INTEGER,
+UPC:INTEGER,
+OID:STRING,
+DT:DATE,
+R_DT:DATE,
+PRC:float,
+QTY:float,
+AMT:float,
+R_QTY:float,
+R_AMT:float,
+WEB_PROD_ID:INTEGER,
+GMM_DESC:STRING,
+PARENT_MDSE_DIVN_DESC:STRING
+LOAD_DT:DATE
+BATCH_ID:INT
+
+
+step 11:
+-- THIS BIGQUERY FOR LOADING THE DATA IN HISTORY TABLE
+
+BQ QUERY --USE_LEGACY_SQL=FALSE
+INSERT INTO
+ REPURCHASE_PRODUCTS_HISTORY.PRODUCTS_HIST
+SELECT
+CAST(CID AS INT) AS r_date,
+UPC,
+OID,
+DT,
+CAST(R_DT AS DATE) AS R_DT,
+PRC,
+QTY,
+AMT,
+R_QTY,
+R_AMT,
+WEB_PROD_ID,
+GMM_DESC,
+PARENT_MDSE_DIVN_DESC,
+CURRENT_TIMESTAMP AS LOAD_DT,
+'101' AS BATCH_ID
+FROM
+REPURCHASE_PRODUCTS_STAGING.PRODUCTS_STAGING
+ 
+
+step 12:bq query --use_legacy_sql=false create view Repurchase_products_history.Repurchase_views as 
+select * from Repurchase_products_history.products_history
+
+step 13:SELECT cid,dt,r_qty,r_amt,GMM_DESC FROM`7ambucket.Repurchase_products_history.Repurchase_views` WHERE GMM_DESC='BEAUTY' and r_qty>=3 and r_amt>100 LIMIT 50
