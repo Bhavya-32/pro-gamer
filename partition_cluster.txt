@@ -1,0 +1,18 @@
+create table if not exists partition_meow.meow_tab as select * FROM public-data-finance.crypto_ethereum2.load_metadata
+
+create table partition_meow.meow_tab1(
+  chain	STRING,
+  load_all_partitions	BOOLEAN,
+  ds	DATE,
+  run_id	STRING,
+  complete_at	TIMESTAMP
+)
+PARTITION BY
+  date_trunc(complete_at, month)
+  cluster by chain,load_all_partitions;
+  
+insert into partition_meow.meow_tab1 select * from partition_meow.meow_tab;
+
+select * from  create_dataset.table_name_new where complete_at = '2023-05-26'
+
+select * from  partition_meow.meow_tab1 where ds = '2023-05-26'
